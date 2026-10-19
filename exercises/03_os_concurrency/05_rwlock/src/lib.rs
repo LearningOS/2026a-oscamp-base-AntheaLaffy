@@ -63,7 +63,28 @@ impl<T> RwLock<T> {
     /// 4. Try compare_exchange(s, s + 1, AcqRel, Acquire); on success return RwLockReadGuard { lock: self }.
     pub fn read(&self) -> RwLockReadGuard<'_, T> {
         // TODO
-        todo!()
+        loop {
+        let state = self.state.load(Ordering::Acquire);
+        // if state & !READER_MASK == 0 
+        // 看起来提示中走的是另一种思路，用writer 的 hoding 和 wating的掩码
+
+        if state & (WRITER_WAITING| WRITER_HOLDING)!=0{
+            std::hint::spin_loop();
+            continue;
+        }
+        
+        // 走到这里，说明没人write，先占位，再读
+        // 对了，要防止溢出
+        if state & READER_MASK == READER_MASK {
+            std::hint::spin_loop();
+            continue;
+        }
+        if self.state.compare_exchange(state, state + 1, Ordering::AcqRel, Ordering::Acquire).is_ok(){
+            return RwLockReadGuard{
+               lock: self 
+            }
+        }
+        }
     }
 
     /// Acquire the write lock. Blocks until no readers and no other writer.
@@ -75,7 +96,25 @@ impl<T> RwLock<T> {
     /// 4. On success return RwLockWriteGuard { lock: self }.
     pub fn write(&self) -> RwLockWriteGuard<'_, T> {
         // TODO
-        todo!()
+        // 先举牌
+        self.state.fetch_or(WRITER_WAITING, Ordering::Release);
+        loop{
+            let state = self.state.load(Ordering::Acquire);
+            if state & (READER_MASK | WRITER_HOLDING) != 0 {
+                std::hint::spin_loop();
+                continue;
+            }
+            // 抢占一下 write 的位置
+            // 写的话只有一个状态， WRITER_HOLDING
+            // 这里貌似清除掉了其他的waiting的状态？也就是说可能会出现抢占锁后有其他候选，但是没有waiting标识保护的情况？看起来也不是写优先
+            if self.state.compare_exchange(state, WRITER_HOLDING, Ordering::Acquire, Ordering::Relaxed).is_ok(){
+                return {
+                    RwLockWriteGuard{
+                        lock: self
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -90,7 +129,11 @@ impl<T> Deref for RwLockReadGuard<'_, T> {
     type Target = T;
 
     fn deref(&self) -> &T {
-        todo!()
+        // 隐式解引用
+        // SAFEFTY: 不可变引用保证的数据的安全性
+        unsafe{
+            &*self.lock.data.get()
+        }
     }
 }
 
@@ -98,7 +141,8 @@ impl<T> Deref for RwLockReadGuard<'_, T> {
 // Decrement reader count: self.lock.state.fetch_sub(1, Ordering::Release)
 impl<T> Drop for RwLockReadGuard<'_, T> {
     fn drop(&mut self) {
-        todo!()
+        // 读锁的状态是剩下的30位，减一即可
+        self.lock.state.fetch_sub(1, Ordering::Release);
     }
 }
 
@@ -113,7 +157,10 @@ impl<T> Deref for RwLockWriteGuard<'_, T> {
     type Target = T;
 
     fn deref(&self) -> &T {
-        todo!()
+        // SAFEFTY: 写锁只有一个人持有，怕个啥
+        unsafe{
+            & *self.lock.data.get()
+        }
     }
 }
 
@@ -121,7 +168,10 @@ impl<T> Deref for RwLockWriteGuard<'_, T> {
 // Return mutable reference: unsafe { &mut *self.lock.data.get() }
 impl<T> DerefMut for RwLockWriteGuard<'_, T> {
     fn deref_mut(&mut self) -> &mut T {
-        todo!()
+        // SAFEFTY: 同上
+        unsafe{
+            &mut *self.lock.data.get()
+        }
     }
 }
 
@@ -129,7 +179,12 @@ impl<T> DerefMut for RwLockWriteGuard<'_, T> {
 // Clear writer bits so lock is free: self.lock.state.fetch_and(!(WRITER_HOLDING | WRITER_WAITING), Ordering::Release)
 impl<T> Drop for RwLockWriteGuard<'_, T> {
     fn drop(&mut self) {
-        todo!()
+        // 写锁的释放只改变 holding的状态，不改变 waiting的状态，但是比较搞笑的呃一点
+        // 是之前的写锁在抢占的时候把其他的已经举牌过的候选的waiting给清除掉
+        // 这样的话waiting的意义不大了，如果出现同时先举牌，后面竞争抢占的情况
+        // 一种解决思路呢是把举牌也变成引用计数。
+        // 不过好像还是有点意义的，比如举牌到抢占的过程中间隙比较小，就可以waiting
+        self.lock.state.store(0, Ordering::Release);
     }
 }
 
