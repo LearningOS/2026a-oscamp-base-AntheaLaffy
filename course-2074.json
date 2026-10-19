@@ -2,8 +2,8 @@
   "schema": 1,
   "courseId": 2074,
   "repository": "LearningOS/2026a-oscamp-base-AntheaLaffy",
-  "commit": "812bebd3cb4d3b4e0a5c28f781bfa6d4acc6d739",
-  "score": 60,
+  "commit": "a46fd21b38a67ea41fa42f93b38fa158758a1023",
+  "score": 72,
   "totalScore": 100,
   "exercises": [
     {
@@ -107,16 +107,16 @@
     {
       "name": "stack_coroutine",
       "max": 6,
-      "score": 0,
-      "status": "fail",
-      "exitCode": 101
+      "score": 6,
+      "status": "pass",
+      "exitCode": 0
     },
     {
       "name": "green_threads",
       "max": 6,
-      "score": 0,
-      "status": "fail",
-      "exitCode": 101
+      "score": 6,
+      "status": "pass",
+      "exitCode": 0
     },
     {
       "name": "basic_future",
@@ -176,9 +176,9 @@
     }
   ],
   "student": "AntheaLaffy",
-  "runId": "39201728102",
+  "runId": "39294342757",
   "runAttempt": "1",
   "upload": {
-    "status": "accepted"
+    "status": "pending"
   }
 }
