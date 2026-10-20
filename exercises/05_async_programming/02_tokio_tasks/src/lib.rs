@@ -17,7 +17,19 @@ pub async fn concurrent_squares(n: usize) -> Vec<usize> {
     // TODO: Create n asynchronous tasks, each computing i * i
     // TODO: Collect all JoinHandle
     // TODO: Await each one to get result
-    todo!()
+    let mut handles = Vec::with_capacity(n);
+    for i in 0..n{
+        let handle = tokio::spawn(async move{
+            i * i
+        });
+        handles.push(handle);
+    }
+    let mut results = Vec::with_capacity(n);
+    for handle in handles{
+        let result = handle.await.unwrap();
+        results.push(result);
+    }
+    results
 }
 
 /// Concurrently execute multiple "time-consuming" tasks (simulated with sleep), return all results.
@@ -28,7 +40,20 @@ pub async fn parallel_sleep_tasks(n: usize, duration_ms: u64) -> Vec<usize> {
     // TODO: Create asynchronous task for each id in 0..n
     // TODO: Each task sleeps specified duration and returns its own id
     // TODO: Collect all results and sort
-    todo!()
+    let (tx, mut rx) = tokio::sync::mpsc::channel(n.max(1));
+    for i in 0..n{
+        let tx = tx.clone();
+        tokio::spawn(async move{
+            sleep(Duration::from_millis(duration_ms)).await;
+            tx.send(i).await.unwrap();
+        });
+    }
+    drop(tx);
+    let mut results = vec![0; n];
+    while let Some(i) = rx.recv().await{
+        results[i] = i;
+    }
+    results
 }
 
 #[cfg(test)]
