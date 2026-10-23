@@ -99,10 +99,11 @@ pub fn pipe_through_cat(input: &str) -> String {
         .stdout(Stdio::piped())
         .spawn().unwrap();
 
-    let stdin = child.stdin.take().unwrap().write_all(input.as_bytes());
+    let mut stdin = child.stdin.take().unwrap();
+    stdin.write_all(input.as_bytes()).unwrap();
     drop(stdin);
     let mut s = String::new();
-    child.stdout.take().unwrap().read_to_string(&mut s);
+    child.stdout.take().unwrap().read_to_string(&mut s).unwrap();
     child.wait().unwrap();
 
     s

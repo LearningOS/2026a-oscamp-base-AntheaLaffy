@@ -8,7 +8,7 @@
 //! - The first completed branch is executed, others are cancelled
 
 use std::future::Future;
-use tokio::time::{sleep, Duration};
+use tokio::time::Duration;
 
 /// Async operation with timeout.
 /// If `future` completes within `timeout_ms` milliseconds, returns Some(result).
@@ -50,6 +50,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tokio::time::sleep;
 
     #[tokio::test]
     async fn test_timeout_success() {

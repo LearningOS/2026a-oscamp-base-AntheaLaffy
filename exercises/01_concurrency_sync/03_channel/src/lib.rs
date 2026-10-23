@@ -47,7 +47,7 @@ pub fn multi_producer(n_producers: usize) -> Vec<String> {
     for n in 0..n_producers{
         let tx = tx.clone();
         let handle = thread::spawn(move||{
-            tx.send(format!("msg from {}", n));
+            tx.send(format!("msg from {}", n)).unwrap();
         });
         handles.push(handle);
     }

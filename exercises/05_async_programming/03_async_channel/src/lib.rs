@@ -22,7 +22,7 @@ pub async fn producer_consumer(items: Vec<String>) -> Vec<String> {
     let (tx, mut rx) = mpsc::channel(items.len().max(1));
     tokio::spawn(async move{
         for s in items{
-            tx.send(s).await;
+            tx.send(s).await.unwrap();
         }
     });
     let mut results = vec![];
@@ -46,7 +46,7 @@ pub async fn fan_in(n_producers: usize) -> Vec<String> {
         let tx = tx.clone();
         tokio::spawn(async move{
             let s = format!("producer {}: message",i);
-            tx.send((i,s)).await;
+            tx.send((i, s)).await.unwrap();
         });
     }
     drop(tx);

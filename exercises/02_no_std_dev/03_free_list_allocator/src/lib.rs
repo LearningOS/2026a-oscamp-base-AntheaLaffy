@@ -47,7 +47,6 @@ struct FreeBlock {
 }
 
 pub struct FreeListAllocator {
-    heap_start: usize,
     heap_end: usize,
     /// Bump pointer: unallocated region starts here
     bump_next: core::sync::atomic::AtomicUsize,
@@ -72,7 +71,6 @@ impl FreeListAllocator {
     /// `heap_start..heap_end` must be a valid readable and writable memory region.
     pub unsafe fn new(heap_start: usize, heap_end: usize) -> Self {
         Self {
-            heap_start,
             heap_end,
             bump_next: core::sync::atomic::AtomicUsize::new(heap_start),
             #[cfg(test)]

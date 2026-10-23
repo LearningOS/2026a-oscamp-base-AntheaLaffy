@@ -140,7 +140,7 @@ impl Scheduler {
         let buf = vec![0u8; STACK_SIZE];
         let stack_top = buf.as_ptr() as usize + STACK_SIZE;
         let mut new_context = TaskContext::default();
-        new_context.ra = thread_wrapper as u64;
+        new_context.ra = thread_wrapper as extern "C" fn() as u64;
         new_context.sp = ((stack_top - 16) & !15) as u64;
         let thread = GreenThread{
             ctx: new_context,

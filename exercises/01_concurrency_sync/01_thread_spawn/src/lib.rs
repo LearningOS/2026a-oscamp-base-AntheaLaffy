@@ -211,7 +211,7 @@ pub fn named_sleeper(value: i32, time: u64) -> i32{
     handle.join().unwrap()
 }
 
-fn increment_thread_local()-> usize{
+pub fn increment_thread_local() -> usize {
     COUNTER.with(|counter| {
         let mut value = counter.borrow_mut();
         *value += 1;
@@ -219,7 +219,7 @@ fn increment_thread_local()-> usize{
     })
 }
 
-fn scoped_slice_sum(a: &[i32], b: &[i32]) -> (i32, i32){
+pub fn scoped_slice_sum(a: &[i32], b: &[i32]) -> (i32, i32) {
     thread::scope(|s|{
         let sum_a = s.spawn(||{
             a.iter().sum()

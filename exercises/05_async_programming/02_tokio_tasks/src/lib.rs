@@ -7,7 +7,6 @@
 //! - `JoinHandle` waits for task completion
 //! - Concurrent execution between asynchronous tasks
 
-use tokio::task::JoinHandle;
 use tokio::time::{sleep, Duration};
 
 /// Concurrently compute the square of each number in 0..n, collect results and return in order.

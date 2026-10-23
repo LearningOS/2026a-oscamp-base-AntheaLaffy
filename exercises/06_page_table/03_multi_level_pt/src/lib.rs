@@ -228,7 +228,7 @@ impl Sv39PageTable {
 
         let vpn1 = Self::extract_vpn(va, 1);
 
-        self.nodes.get_mut(&level1_ppn).unwrap().entries[vpn1] = ((pa >> 12) << PPN_SHIFT | flags);
+        self.nodes.get_mut(&level1_ppn).unwrap().entries[vpn1] = (pa >> 12) << PPN_SHIFT | flags;
     }
 }
 

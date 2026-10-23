@@ -107,7 +107,7 @@ pub fn check_permission(pte: u64, read: bool, write: bool, execute: bool) -> boo
     let mask = (read as u64) * PTE_R
             | (write as u64) * PTE_W
             | (execute as u64) * PTE_X;
-    pte & mask == mask
+    flags & mask == mask
 }
 
 #[cfg(test)]
